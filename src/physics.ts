@@ -1,4 +1,4 @@
-import { MIN_DRIFT_SPEED, WALL_BOUNCE, WORLD_H, WORLD_W } from './config.ts';
+import { EDGE_PULL, MIN_DRIFT_SPEED, WORLD_H, WORLD_W } from './config.ts';
 import type { Planet } from './types.ts';
 
 export interface Body {
@@ -27,6 +27,13 @@ export function stepFree(b: Body, planets: Planet[], dt: number): void {
     ax += (dx / d) * a;
     ay += (dy / d) * a;
   }
+  // Outside the sector there are no walls, only a tide that grows with distance
+  // and swings the ship back in.
+  if (b.x < 0) ax -= b.x * EDGE_PULL;
+  else if (b.x > WORLD_W) ax -= (b.x - WORLD_W) * EDGE_PULL;
+  if (b.y < 0) ay -= b.y * EDGE_PULL;
+  else if (b.y > WORLD_H) ay -= (b.y - WORLD_H) * EDGE_PULL;
+
   b.vx += ax * dt;
   b.vy += ay * dt;
 
@@ -40,20 +47,6 @@ export function stepFree(b: Body, planets: Planet[], dt: number): void {
   b.x += b.vx * dt;
   b.y += b.vy * dt;
 
-  if (b.x < 0) {
-    b.x = 0;
-    b.vx = Math.abs(b.vx) * WALL_BOUNCE;
-  } else if (b.x > WORLD_W) {
-    b.x = WORLD_W;
-    b.vx = -Math.abs(b.vx) * WALL_BOUNCE;
-  }
-  if (b.y < 0) {
-    b.y = 0;
-    b.vy = Math.abs(b.vy) * WALL_BOUNCE;
-  } else if (b.y > WORLD_H) {
-    b.y = WORLD_H;
-    b.vy = -Math.abs(b.vy) * WALL_BOUNCE;
-  }
 }
 
 /** Index of the planet whose solid body contains the point, or -1. */

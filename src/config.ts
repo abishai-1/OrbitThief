@@ -1,7 +1,13 @@
 // All tunable gameplay numbers live here. Units: world pixels and seconds.
 
-export const WORLD_W = 1600;
-export const WORLD_H = 900;
+/** Size of the sector that planets are placed in. Ships may fly beyond it. */
+export const WORLD_W = 3200;
+export const WORLD_H = 2000;
+
+/** World units visible top to bottom at normal zoom. */
+export const VIEW_H = 1050;
+/** Narrow windows zoom out so at least this many world units fit across. */
+export const VIEW_MIN_W = 1300;
 
 /** Fixed physics timestep. Rendering interpolation is not needed at 120 Hz. */
 export const STEP = 1 / 120;
@@ -10,8 +16,8 @@ export const STEP = 1 / 120;
 export const GRAVITY = 700;
 /** Free-flying ships are nudged up to this speed so they can never stall in open space. */
 export const MIN_DRIFT_SPEED = 90;
-/** Fraction of speed kept when bouncing off the edge of the sector. */
-export const WALL_BOUNCE = 0.85;
+/** Spring strength of the tide that pulls ships back once they leave the sector. */
+export const EDGE_PULL = 1.4;
 
 /** Latching never leaves you slower than this. */
 export const ORBIT_MIN_SPEED = 170;

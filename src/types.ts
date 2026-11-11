@@ -55,6 +55,15 @@ export interface Patrol {
   vy: number;
 }
 
+export interface Floater {
+  x: number;
+  y: number;
+  text: string;
+  life: number;
+  max: number;
+  color: string;
+}
+
 export interface Particle {
   x: number;
   y: number;

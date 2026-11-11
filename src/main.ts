@@ -1,7 +1,7 @@
 import { Synth } from './audio.ts';
-import { STEP, WORLD_H, WORLD_W } from './config.ts';
+import { STEP } from './config.ts';
 import { Game } from './game.ts';
-import { render, type View } from './render.ts';
+import { render } from './render.ts';
 
 const BEST_KEY = 'orbit-thief-best';
 
@@ -27,16 +27,10 @@ const synth = new Synth();
 const game = new Game(synth, loadBest());
 let savedBest = game.best;
 
-const view: View = { scale: 1, ox: 0, oy: 0 };
-
 function resize(): void {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.floor(window.innerWidth * dpr);
   canvas.height = Math.floor(window.innerHeight * dpr);
-  // Fit the whole sector on screen with a small margin, letterboxed.
-  view.scale = Math.min(canvas.width / WORLD_W, canvas.height / WORLD_H) * 0.97;
-  view.ox = (canvas.width - WORLD_W * view.scale) / 2;
-  view.oy = (canvas.height - WORLD_H * view.scale) / 2;
 }
 window.addEventListener('resize', resize);
 resize();
@@ -84,7 +78,8 @@ let acc = 0;
 
 function frame(t: number): void {
   // Cap the frame delta so a background tab doesn't cause a huge catch-up.
-  acc += Math.min((t - last) / 1000, 0.1);
+  const dt = Math.min((t - last) / 1000, 0.1);
+  acc += dt;
   last = t;
   while (acc >= STEP) {
     if (!game.paused) game.update(STEP);
@@ -94,7 +89,7 @@ function frame(t: number): void {
     savedBest = game.best;
     saveBest(savedBest);
   }
-  render(ctx, game, view, t / 1000);
+  render(ctx, game, t / 1000, dt);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

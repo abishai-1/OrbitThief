@@ -12,12 +12,10 @@ import {
   PATROL_SPAWN_DELAY,
   PATROL_SPEED_PER_LEVEL,
   PICKUP_RADIUS,
-  WORLD_H,
-  WORLD_W,
 } from './config.ts';
 import { makeLevel } from './level.ts';
 import { planetAt, stepFree, wellAt } from './physics.ts';
-import type { Level, Particle, Patrol, Ship } from './types.ts';
+import type { Floater, Level, Particle, Patrol, Ship } from './types.ts';
 
 export type Phase = 'title' | 'playing' | 'dead' | 'cleared';
 
@@ -44,6 +42,8 @@ export class Game {
   ship: Ship;
   patrols: Patrol[] = [];
   particles: Particle[] = [];
+  /** Score popups that float up from where points were earned. */
+  floaters: Floater[] = [];
 
   /** True while the latch button is held. Set by the input layer. */
   held = false;
@@ -141,6 +141,7 @@ export class Game {
     this.ship = this.spawnShip();
     this.patrols = [];
     this.particles = [];
+    this.floaters = [];
     this.stolen = 0;
     this.time = 0;
     this.alarm = false;
@@ -229,6 +230,7 @@ export class Game {
       s.hasCargo = false;
       this.stolen++;
       this.addScore(100 * this.levelNum);
+      this.float(s.x, s.y, `+${100 * this.levelNum}`, '#ffd866');
       this.burst(s.x, s.y, '#ffd866', 18, 160);
       this.sfx.pickup();
       if (!this.alarm) {
@@ -307,6 +309,7 @@ export class Game {
         this.patrols.splice(i, 1);
         this.burst(pt.x, pt.y, '#ff5566', 22, 200);
         this.addScore(50 * this.levelNum);
+        this.float(pt.x, pt.y, `+${50 * this.levelNum}`, '#ff8a96');
         this.shake = Math.max(this.shake, 6);
         this.spawnTimer = PATROL_SPAWN_DELAY;
         this.sfx.boom();
@@ -320,23 +323,18 @@ export class Game {
   }
 
   private spawnPatrol(): void {
-    // Arrive from whichever sampled edge point is farthest from the ship.
-    let bx = 0;
-    let by = 0;
-    let bd = -1;
-    for (let i = 0; i < 8; i++) {
-      const t = Math.random();
-      const side = Math.floor(Math.random() * 4);
-      const x = side === 0 ? 0 : side === 1 ? WORLD_W : t * WORLD_W;
-      const y = side === 2 ? 0 : side === 3 ? WORLD_H : t * WORLD_H;
-      const d = Math.hypot(x - this.ship.x, y - this.ship.y);
-      if (d > bd) {
-        bd = d;
-        bx = x;
-        by = y;
-      }
+    // Warp in just beyond the edge of the player's view, clear of any gravity well.
+    let x = 0;
+    let y = 0;
+    for (let i = 0; i < 12; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const d = 1000 + Math.random() * 200;
+      x = this.ship.x + Math.cos(a) * d;
+      y = this.ship.y + Math.sin(a) * d;
+      if (wellAt(this.level.planets, x, y) < 0) break;
     }
-    this.patrols.push({ x: bx, y: by, vx: 0, vy: 0 });
+    this.patrols.push({ x, y, vx: 0, vy: 0 });
+    this.burst(x, y, '#ff5566', 14, 120);
   }
 
   private die(reason: string): void {
@@ -378,7 +376,15 @@ export class Game {
     }
   }
 
+  private float(x: number, y: number, text: string, color: string): void {
+    this.floaters.push({ x, y, text, color, life: 1.1, max: 1.1 });
+  }
+
   private updateParticles(dt: number): void {
+    for (let i = this.floaters.length - 1; i >= 0; i--) {
+      this.floaters[i].life -= dt;
+      if (this.floaters[i].life <= 0) this.floaters.splice(i, 1);
+    }
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.life -= dt;

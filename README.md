@@ -19,6 +19,11 @@ cargo, then escape through the exit gate before the patrols close in.
 - **Orbiting builds speed.** The longer you stay latched, the faster you leave.
 - **The dotted line is exact.** It shows where you will go if you let go right now. A red
   dot means that path ends in a planet.
+- **The camera follows you.** The sector is much bigger than the screen. Arrows at the
+  screen edge point to cargo (gold), patrols (red) and the open exit (green), and the
+  minimap in the corner shows the whole sector.
+- **There are no walls.** You can fly out of the sector on any side; a tide that grows
+  with distance swings you back in.
 - **Hold early to catch a planet.** If you are already holding when you enter a gravity
   well, you latch at its edge.
 - **Stealing raises the alarm.** The first theft calls in patrols, and more arrive as you
@@ -60,7 +65,7 @@ src/
   game.ts         game state and rules: latching, pickups, patrols, win/lose
   physics.ts      free-flight gravity step shared by the game and the trajectory preview
   level.ts        seeded level generator
-  render.ts       all drawing: world, HUD, overlays
+  render.ts       all drawing: camera, backdrop, planets, world, HUD, minimap, overlays
   audio.ts        synthesized sound effects
   config.ts       every tunable gameplay number
   types.ts        shared data types

@@ -2,7 +2,7 @@ import { GRAVITY, WORLD_H, WORLD_W } from './config.ts';
 import type { Level, Planet, Station, Vec } from './types.ts';
 
 /** Small seeded PRNG so every level number always produces the same layout. */
-function mulberry32(seed: number): () => number {
+export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;
@@ -16,15 +16,15 @@ function mulberry32(seed: number): () => number {
 export function makeLevel(n: number): Level {
   const rnd = mulberry32(n * 7919 + 13);
 
-  const wanted = Math.min(3 + Math.floor((n + 1) / 2), 7);
+  const wanted = Math.min(5 + n, 11);
   const planets: Planet[] = [];
-  for (let tries = 0; tries < 2000 && planets.length < wanted; tries++) {
-    const r = 26 + rnd() * 26;
-    const well = r * 2.2 + 60;
-    const margin = well + 10;
+  for (let tries = 0; tries < 4000 && planets.length < wanted; tries++) {
+    const r = 28 + rnd() * 40;
+    const well = r * 2.1 + 75;
+    const margin = well + 40;
     const x = margin + rnd() * (WORLD_W - margin * 2);
     const y = margin + rnd() * (WORLD_H - margin * 2);
-    const clear = planets.every((q) => Math.hypot(q.x - x, q.y - y) >= (well + q.well) * 0.8);
+    const clear = planets.every((q) => Math.hypot(q.x - x, q.y - y) >= (well + q.well) * 1.05);
     if (clear) planets.push({ x, y, r, well, mu: GRAVITY * r * r, hue: Math.floor(rnd() * 360) });
   }
 
@@ -33,7 +33,7 @@ export function makeLevel(n: number): Level {
   for (let i = 1; i < planets.length; i++) if (planets[i].x < planets[start].x) start = i;
 
   // First pass gives every other planet a station; later passes double up.
-  const cargo = Math.min(2 + n, 8, planets.length * 2);
+  const cargo = Math.min(2 + n, 9, planets.length * 2);
   const order: number[] = [];
   for (let i = 0; i < planets.length; i++) if (i !== start) order.push(i);
   for (let i = 0; i < planets.length; i++) order.push(i);
@@ -62,12 +62,12 @@ export function makeLevel(n: number): Level {
 
   // Exit gate: the open-space spot farthest from the start planet.
   const s = planets[start];
-  let gate: Vec = { x: WORLD_W - 70, y: WORLD_H / 2 };
+  let gate: Vec = { x: WORLD_W - 100, y: WORLD_H / 2 };
   let gateD = -1;
   for (let i = 0; i < 60; i++) {
-    const x = 70 + rnd() * (WORLD_W - 140);
-    const y = 70 + rnd() * (WORLD_H - 140);
-    if (planets.some((p) => Math.hypot(p.x - x, p.y - y) < p.well + 30)) continue;
+    const x = 100 + rnd() * (WORLD_W - 200);
+    const y = 100 + rnd() * (WORLD_H - 200);
+    if (planets.some((p) => Math.hypot(p.x - x, p.y - y) < p.well + 50)) continue;
     const d = Math.hypot(s.x - x, s.y - y);
     if (d > gateD) {
       gateD = d;
