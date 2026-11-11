@@ -586,20 +586,61 @@ function drawWorld(ctx: Ctx, g: Game, now: number): void {
     ctx.save();
     ctx.translate(ship.x, ship.y);
     ctx.rotate(Math.atan2(ship.vy, ship.vx));
-    ctx.fillStyle = '#0d2530';
-    ctx.strokeStyle = '#eafcff';
-    ctx.lineWidth = 1.8;
+    ctx.scale(1.25, 1.25);
+    ctx.strokeStyle = '#10222e';
+    ctx.lineWidth = 1.2;
+    // Swept tail fins
+    ctx.fillStyle = '#2fb4d8';
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(-2, side * 5);
+      ctx.lineTo(-15, side * 13);
+      ctx.lineTo(-11, side * 3.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    // Dead engine nozzle
+    ctx.fillStyle = '#3a4a68';
+    ctx.fillRect(-14, -3.2, 3.5, 6.4);
+    ctx.strokeRect(-14, -3.2, 3.5, 6.4);
+    // Hull
+    const hull = ctx.createLinearGradient(0, -6.5, 0, 6.5);
+    hull.addColorStop(0, '#ffffff');
+    hull.addColorStop(0.55, '#dfe7f5');
+    hull.addColorStop(1, '#8e9cb8');
+    ctx.fillStyle = hull;
     ctx.beginPath();
-    ctx.moveTo(14, 0);
-    ctx.lineTo(-9, 9);
-    ctx.lineTo(-4, 0);
-    ctx.lineTo(-9, -9);
+    ctx.moveTo(17, 0);
+    ctx.bezierCurveTo(9, -6.8, -4, -6.8, -11, -4.2);
+    ctx.lineTo(-11, 4.2);
+    ctx.bezierCurveTo(-4, 6.8, 9, 6.8, 17, 0);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = `rgb(${CYAN})`;
+    // Nose cone
+    ctx.fillStyle = '#2fb4d8';
     ctx.beginPath();
-    ctx.arc(2, 0, 2.6, 0, TAU);
+    ctx.moveTo(17, 0);
+    ctx.bezierCurveTo(13.6, -2.9, 10.6, -4.4, 8, -5.1);
+    ctx.lineTo(8, 5.1);
+    ctx.bezierCurveTo(10.6, 4.4, 13.6, 2.9, 17, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // Hull band and cockpit window
+    ctx.fillStyle = '#2fb4d8';
+    ctx.fillRect(-8, -4.9, 2, 9.8);
+    ctx.fillStyle = '#0d2530';
+    ctx.strokeStyle = `rgb(${CYAN})`;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(1.5, 0, 3.1, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.arc(2.4, -1, 0.9, 0, TAU);
     ctx.fill();
     ctx.restore();
   }
