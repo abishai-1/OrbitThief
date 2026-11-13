@@ -15,6 +15,7 @@ cargo, then escape through the exit gate before the patrols close in.
 | `R` | Retry the current level |
 | `P` | Pause |
 | `M` | Mute |
+| `C` | Change the ship's color (`Shift+C` goes back) |
 
 - **Orbiting builds speed.** The longer you stay latched, the faster you leave.
 - **The dotted line is exact.** It shows where you will go if you let go right now. A red

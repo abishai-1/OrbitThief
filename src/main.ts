@@ -1,9 +1,10 @@
 import { Synth } from './audio.ts';
-import { STEP } from './config.ts';
+import { SHIP_COLORS, STEP } from './config.ts';
 import { Game } from './game.ts';
 import { render } from './render.ts';
 
 const BEST_KEY = 'orbit-thief-best';
+const COLOR_KEY = 'orbit-thief-ship-color';
 
 function loadBest(): number {
   try {
@@ -21,10 +22,28 @@ function saveBest(n: number): void {
   }
 }
 
+function loadShipColor(): number {
+  try {
+    const n = Number(localStorage.getItem(COLOR_KEY));
+    return Number.isInteger(n) && n >= 0 && n < SHIP_COLORS.length ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveShipColor(n: number): void {
+  try {
+    localStorage.setItem(COLOR_KEY, String(n));
+  } catch {
+    // Same as saveBest: the choice just won't persist.
+  }
+}
+
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 const synth = new Synth();
 const game = new Game(synth, loadBest());
+game.shipColor = loadShipColor();
 let savedBest = game.best;
 
 function resize(): void {
@@ -56,6 +75,10 @@ window.addEventListener('keydown', (e) => {
     if (game.phase === 'playing') game.paused = !game.paused;
   } else if (e.code === 'KeyM') {
     synth.muted = !synth.muted;
+  } else if (e.code === 'KeyC') {
+    if (e.repeat) return;
+    game.shipColor = (game.shipColor + (e.shiftKey ? SHIP_COLORS.length - 1 : 1)) % SHIP_COLORS.length;
+    saveShipColor(game.shipColor);
   }
 });
 window.addEventListener('keyup', (e) => {

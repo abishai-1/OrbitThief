@@ -3,6 +3,7 @@ import {
   GATE_RADIUS,
   ORBIT_MAX_SPEED,
   ORBIT_MIN_SPEED,
+  SHIP_COLORS,
   VIEW_H,
   VIEW_MIN_W,
   WORLD_H,
@@ -407,6 +408,8 @@ function drawWorld(ctx: Ctx, g: Game, now: number): void {
   const { planets, stations, gate } = g.level;
   const ship = g.ship;
   const alive = g.phase !== 'dead';
+  const paint = SHIP_COLORS[g.shipColor] ?? SHIP_COLORS[0];
+  const shipRgb = paint.glow;
 
   // Sector boundary
   ctx.strokeStyle = 'rgba(120,140,220,0.22)';
@@ -538,16 +541,23 @@ function drawWorld(ctx: Ctx, g: Game, now: number): void {
           drawGlow(ctx, ghost.x, ghost.y, 18, RED, 0.9);
           break;
         }
-        drawGlow(ctx, ghost.x, ghost.y, 3 + 4 * fade, CYAN, fade * strength);
+        drawGlow(ctx, ghost.x, ghost.y, 3 + 4 * fade, shipRgb, fade * strength);
       }
     }
 
     // Trail
     const fast = clamp01((ship.speed - ORBIT_MIN_SPEED) / (ORBIT_MAX_SPEED - ORBIT_MIN_SPEED));
     const trail = ship.trail;
+    // The trail shifts from the ship's colour toward a hot pink-white as it speeds up.
+    const [tr, tg, tb] = shipRgb.split(',').map(Number);
+    const trailRgb = [
+      Math.round(tr + (255 - tr) * fast),
+      Math.round(tg - 60 * fast),
+      Math.round(tb + (255 - tb) * fast),
+    ].join(',');
     for (let i = 1; i < trail.length; i++) {
       const f = i / trail.length;
-      ctx.strokeStyle = `rgba(${Math.round(127 + 128 * fast)},${Math.round(233 - 60 * fast)},255,${f * 0.6})`;
+      ctx.strokeStyle = `rgba(${trailRgb},${f * 0.6})`;
       ctx.lineWidth = f * (4 + 4 * fast);
       ctx.beginPath();
       ctx.moveTo(trail[i - 1].x, trail[i - 1].y);
@@ -558,13 +568,13 @@ function drawWorld(ctx: Ctx, g: Game, now: number): void {
     // Tether
     if (ship.latched >= 0) {
       const p = planets[ship.latched];
-      ctx.strokeStyle = `rgba(${CYAN},0.25)`;
+      ctx.strokeStyle = `rgba(${shipRgb},0.25)`;
       ctx.lineWidth = 5;
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
       ctx.lineTo(ship.x, ship.y);
       ctx.stroke();
-      ctx.strokeStyle = `rgba(${CYAN},0.9)`;
+      ctx.strokeStyle = `rgba(${shipRgb},0.9)`;
       ctx.lineWidth = 1.5;
       ctx.setLineDash([10, 8]);
       ctx.lineDashOffset = now * 60;
@@ -572,14 +582,14 @@ function drawWorld(ctx: Ctx, g: Game, now: number): void {
       ctx.setLineDash([]);
 
       // Charge ring: how wound-up the slingshot is.
-      ctx.strokeStyle = fast >= 1 ? `rgba(${GOLD},0.95)` : `rgba(${CYAN},0.85)`;
+      ctx.strokeStyle = fast >= 1 ? `rgba(${GOLD},0.95)` : `rgba(${shipRgb},0.85)`;
       ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.arc(ship.x, ship.y, 22, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(fast, 0.02));
       ctx.stroke();
     }
 
-    drawGlow(ctx, ship.x, ship.y, 30 + 14 * fast, CYAN, 0.75);
+    drawGlow(ctx, ship.x, ship.y, 30 + 14 * fast, shipRgb, 0.75);
     ctx.globalCompositeOperation = 'source-over';
 
     // Ship
@@ -590,7 +600,7 @@ function drawWorld(ctx: Ctx, g: Game, now: number): void {
     ctx.strokeStyle = '#10222e';
     ctx.lineWidth = 1.2;
     // Swept tail fins
-    ctx.fillStyle = '#2fb4d8';
+    ctx.fillStyle = paint.accent;
     for (const side of [-1, 1]) {
       ctx.beginPath();
       ctx.moveTo(-2, side * 5);
@@ -619,7 +629,7 @@ function drawWorld(ctx: Ctx, g: Game, now: number): void {
     ctx.fill();
     ctx.stroke();
     // Nose cone
-    ctx.fillStyle = '#2fb4d8';
+    ctx.fillStyle = paint.accent;
     ctx.beginPath();
     ctx.moveTo(17, 0);
     ctx.bezierCurveTo(13.6, -2.9, 10.6, -4.4, 8, -5.1);
@@ -629,10 +639,10 @@ function drawWorld(ctx: Ctx, g: Game, now: number): void {
     ctx.fill();
     ctx.stroke();
     // Hull band and cockpit window
-    ctx.fillStyle = '#2fb4d8';
+    ctx.fillStyle = paint.accent;
     ctx.fillRect(-8, -4.9, 2, 9.8);
     ctx.fillStyle = '#0d2530';
-    ctx.strokeStyle = `rgb(${CYAN})`;
+    ctx.strokeStyle = `rgb(${shipRgb})`;
     ctx.lineWidth = 1.4;
     ctx.beginPath();
     ctx.arc(1.5, 0, 3.1, 0, TAU);
@@ -955,7 +965,7 @@ function drawOverlay(ctx: Ctx, g: Game, vw: number, vh: number, now: number): vo
       'The first theft raises the alarm. Patrols will hunt you — or follow you into a planet.',
       '',
       'HOLD  Space / mouse / touch  to latch   ·   RELEASE  to slingshot',
-      'R  retry   ·   P  pause   ·   M  mute',
+      `R  retry   ·   P  pause   ·   M  mute   ·   C  ship color (${(SHIP_COLORS[g.shipColor] ?? SHIP_COLORS[0]).name})`,
     );
     prompt = 'Press Space or click to start';
   } else if (g.phase === 'dead') {

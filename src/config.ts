@@ -39,3 +39,17 @@ export const PATROL_MAX_SPEED = 250;
 export const PATROL_MAX_COUNT = 6;
 /** Seconds between patrol arrivals once the alarm is raised. */
 export const PATROL_SPAWN_DELAY = 4;
+
+/**
+ * Ship paint jobs the player can cycle through. `accent` paints the fins, nose and hull
+ * band; `glow` is the "r,g,b" used for the ship's glow, trail, tether and path preview.
+ * Red, gold and green are left out: they mean patrols, cargo and the exit.
+ */
+export const SHIP_COLORS = [
+  { name: 'Cyan', accent: '#2fb4d8', glow: '127,233,255' },
+  { name: 'Violet', accent: '#8a5cf0', glow: '190,160,255' },
+  { name: 'Magenta', accent: '#e04fb8', glow: '255,140,225' },
+  { name: 'Orange', accent: '#f08a2c', glow: '255,180,110' },
+  { name: 'Azure', accent: '#3d74f2', glow: '120,170,255' },
+  { name: 'Silver', accent: '#aab6cc', glow: '225,235,255' },
+];

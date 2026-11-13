@@ -47,6 +47,8 @@ export class Game {
 
   /** True while the latch button is held. Set by the input layer. */
   held = false;
+  /** Index into SHIP_COLORS. Cosmetic only; set by the input layer. */
+  shipColor = 0;
 
   score = 0;
   best: number;
